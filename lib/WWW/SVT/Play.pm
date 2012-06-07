@@ -69,6 +69,7 @@ sub new {
 		streams => \%bitrate,
 		filename => $json->{statistics}->{title},
 		subtitles => \@subtitles,
+		duration => $json->{video}->{materialLength},
 		title => $json->{context}->{title},
 	}, $class;
 }
@@ -160,6 +161,17 @@ sub subtitles {
 	push @subtitles, @{$self->{subtitles}} if $self->{subtitles};
 	return @subtitles if wantarray;
 	return $subtitles[0];
+}
+
+=head2 $svtp->duration
+
+Returns the length of the video in seconds.
+
+=cut
+
+sub duration {
+	my $self = shift;
+	return $self->{duration};
 }
 
 ## INTERNAL SUBROUTINES
