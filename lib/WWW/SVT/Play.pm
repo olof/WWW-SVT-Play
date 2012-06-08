@@ -30,6 +30,9 @@ scrape unforuntately.
 
 =cut
 
+use warnings FATAL => 'all';
+use strict;
+
 our $VERSION = 0.1;
 use HTML::TreeBuilder;
 use LWP::UserAgent;
