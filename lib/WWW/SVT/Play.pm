@@ -187,7 +187,7 @@ sub _get {
 	my $resp = $ua->get($uri);
 	
 	return $resp->decoded_content if $resp->is_success;
-	die "Failed to fetch $uri: $response->status_line";
+	die "Failed to fetch $uri: ", $resp->status_line;
 }
 
 sub _extract_json {
