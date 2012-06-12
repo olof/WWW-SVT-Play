@@ -1,0 +1,28 @@
+NAME
+    WWW::SVT::Play, extract information about videos on SVT Play
+
+INSTALLATION
+    The installation of this module follows the usual steps for
+    installing a Perl module (based on ExtUtils::MakeMaker).
+
+     perl Makefile.PL
+     make test
+     make install # this command will probably have to be run as root
+
+    If you have failing tests, please report them to me, preferbly by
+    opening an issue on Github.
+
+AVAILABILITY AND BUG REPORTING
+    The latest released version of this module is available through CPAN.
+    It's encouraged to report bugs on github.com, but I will also monitor
+    the CPAN RT and (of course,) e-mail.
+
+    (Actually, this is not available through CPAN yet. working on some
+     lingering issues before releasing it. And I will also writes tests.)
+
+COPYRIGHT
+    Copyright (c) 2012 - Olof Johansson <olof@cpan.org> All rights reserved.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
