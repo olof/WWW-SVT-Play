@@ -7,7 +7,7 @@ WriteMakefile (
 	NAME => 'WWW::SVT::Play',
 	AUTHOR => 'Olof Johansson <olof@cpan.org>',
 	LICENSE => 'perl',
-	ABSTRACT_FROM => 'lib/WWW/SVT/Play/Video.pm',
+	ABSTRACT_FROM => 'lib/WWW/SVT/Play.pod',
 	VERSION_FROM => 'lib/WWW/SVT/Play/Video.pm',
 	SIGN => 1,
 

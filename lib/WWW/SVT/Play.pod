@@ -1,0 +1,29 @@
+=head1 NAME
+
+WWW::SVT::Play - extract information from SVT Play
+
+=head1 DESCRIPTION
+
+Swedish state public service television, Sveriges Television, has
+created a popular "Play" service (i.e. on demand web based
+streaming). But one thing was missing. An API! So we have to
+scrape unfortunately. With this module, the otherwise good
+service is completed.
+
+You can fetch data, including stream URIs, for videos hosted on
+SVT Play using the module L<WWW::SVT::Play::Video>.
+
+=head1 AVAILABILITY AND BUG REPORTING
+
+The latest released version of this module is available through
+CPAN. It's encouraged to report bugs on github.com, but I will
+also monitor the CPAN RT and (of course,) e-mail.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
+All rights reserved.
+
+This program is free software; you can redistribute it and/or 
+modify it under the same terms as Perl itself.
+
