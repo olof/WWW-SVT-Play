@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use feature qw/say/;
 
-use WWW::SVT::Play;
+use WWW::SVT::Play::Video;
 use Getopt::Long qw/:config gnu_getopt/;
 use Pod::Usage qw/pod2usage/;
 
@@ -44,7 +44,7 @@ GetOptions($opts,
 );
 
 my $url = shift;
-my $svtp = WWW::SVT::Play->new($url) or
+my $svtp = WWW::SVT::Play::Video->new($url) or
 	die "Failed?";
 my $bitrate = $opts->{bitrate};
 $bitrate = $svtp->bitrates if $opts->{'max-bitrate'};

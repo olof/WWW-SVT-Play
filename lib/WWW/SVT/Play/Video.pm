@@ -1,4 +1,4 @@
-package WWW::SVT::Play;
+package WWW::SVT::Play::Video;
 
 # Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
@@ -8,12 +8,12 @@ package WWW::SVT::Play;
 
 =head1 NAME
 
-WWW::SVT::Play, extract information about videos on SVT Play
+WWW::SVT::Play::Video, extract information about videos on SVT Play
 
 =head1 SYNOPSIS
 
  my $uri = 'http://www.svtplay.se/video/107889/malmopolisen-del-6';
- my $svtp = WWW::SVT::Play->new($uri);
+ my $svtp = WWW::SVT::Play::Video->new($uri);
  say $svtp->title;
 
  my $max = 0;
@@ -42,11 +42,11 @@ use JSON;
 
 =head1 CONSTRUCTOR
 
-=head2 WWW::SVT::Play->new($uri)
+=head2 WWW::SVT::Play::Video->new($uri)
 
-Construct a WWW::SVT::Play object by passing the URL to the video
-you're interested in. A second argument consisting of a hashref
-of options is reserved for future use.
+Construct a WWW::SVT::Play::Video object by passing the URL to
+the video you're interested in. A second argument consisting of a
+hashref of options is reserved for future use.
 
 =cut
 
