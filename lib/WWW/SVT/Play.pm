@@ -26,7 +26,7 @@ WWW::SVT::Play, extract information about videos on SVT Play
 Swedish state public service television, Sveriges Television, has
 created a popular "Play" service (i.e. on demand web based
 streaming). But one thing was missing. An API! So we have to
-scrape unforuntately.
+scrape unfortunately.
 
 =cut
 
