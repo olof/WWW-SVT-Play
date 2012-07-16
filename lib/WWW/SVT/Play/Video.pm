@@ -23,11 +23,6 @@ WWW::SVT::Play::Video, extract information about videos on SVT Play
  
 =head1 DESCRIPTION
 
-Swedish state public service television, Sveriges Television, has
-created a popular "Play" service (i.e. on demand web based
-streaming). But one thing was missing. An API! So we have to
-scrape unfortunately.
-
 =cut
 
 use warnings FATAL => 'all';
@@ -79,12 +74,26 @@ sub new {
 
 =head2 url
 
-Returns the URL, originally supplied to the constructor
-after it has been postprocessed somewhat.
+ $svtp->url
+
+Returns the URL after it has been postprocessed somewhat.
 
 =cut
 
 sub url {
+	my $self = shift;
+	return $self->{url};
+}
+
+=head2 stream
+
+ $svtp->stream($bitrate)
+
+Returns the stream URL for a given bitrate.
+
+=cut
+
+sub stream {
 	my $self = shift;
 	my $bitrate = shift;
 
@@ -210,12 +219,6 @@ sub _extract_json {
 
 	die "Could not find needed parameters from SVT Play";
 }
-
-=head1 AVAILABILITY AND BUG REPORTING
-
-The latest released version of this module is available through
-CPAN. It's encouraged to report bugs on github.com, but I will
-also monitor the CPAN RT and (of course,) e-mail.
 
 =head1 COPYRIGHT
 
