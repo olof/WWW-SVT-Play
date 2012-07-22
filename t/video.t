@@ -32,7 +32,8 @@ is($svtp->duration, 5371, '->duration()');
 
 is_deeply(
 	[sort {$a <=> $b } $svtp->bitrates],
-	$ref->{bitrates}, '->bitrates() in list context'
+	$ref->{bitrates},
+	'->bitrates() in list context'
 );
 
 my $max = max $svtp->bitrates;
