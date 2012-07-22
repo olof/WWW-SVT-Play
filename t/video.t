@@ -9,6 +9,7 @@ my $ref = {
 	url => 'http://www.svtplay.se/video/188402/14-7-21-00',
 	title => '14/7 21:00',
 	bitrates => [qw/320 850 1400/],
+	duration => 5371,
 	filename => {
 		320 => '14-7-21-00.mp4',
 		850 => '14-7-21-00.mp4',
@@ -38,4 +39,4 @@ my $max = max $svtp->bitrates;
 is(scalar $svtp->bitrates, $max, '->bitrates() in scalar context');
 is($svtp->filename($max), $ref->{filename}->{$max}, '->filename()');
 is($svtp->format($max), fileext($ref->{filename}->{$max}), '->format()');
-is($svtp->duration, 5371, '->duration()');
+is($svtp->duration, $ref->{duration}, '->duration()');
