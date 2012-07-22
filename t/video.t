@@ -16,6 +16,12 @@ my $ref = {
 	},
 };
 
+sub fileext {
+	my $_ = shift;
+	s/.*\.//;
+	return $_;
+}
+
 BEGIN { use_ok('WWW::SVT::Play::Video') }
 
 my $svtp = new_ok('WWW::SVT::Play::Video', [$ref->{url}]);
@@ -27,8 +33,9 @@ is_deeply(
 	[sort {$a <=> $b } $svtp->bitrates],
 	$ref->{bitrates}, '->bitrates() in list context'
 );
+
 my $max = max $svtp->bitrates;
 is(scalar $svtp->bitrates, $max, '->bitrates() in scalar context');
 is($svtp->filename($max), $ref->{filename}->{$max}, '->filename()');
-is($svtp->format($max), 'mp4', '->format()');
+is($svtp->format($max), fileext($ref->{filename}->{$max}), '->format()');
 is($svtp->duration, 5371, '->duration()');
