@@ -1,24 +1,36 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use lib 't/lib';
 use List::Util qw/max/;
+
+my $URIBASE = 'rtmp://fl11.c91005.cdn.qbrick.com';
 
 my $ref = {
 	url => 'http://www.svtplay.se/video/188402/14-7-21-00',
 	title => '14/7 21:00',
 	bitrates => [qw/320 850 1400/],
 	duration => 5371,
-	filename => {
-		320 => '14-7-21-00.mp4',
-		850 => '14-7-21-00.mp4',
-		1400 => '14-7-21-00.mp4',
+	streams => {
+		320 => {
+			filename => '14-7-21-00.mp4',
+                        uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
+		},
+		850 => {
+			filename => '14-7-21-00.mp4',
+			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-c-v1-04b3eee6620d4385.mp4",
+		},
+		1400 => {
+			filename => '14-7-21-00.mp4',
+			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-d-v1-04b3eee6620d4385.mp4",
+		},
 	},
 };
 
 sub fileext {
 	my $_ = shift;
+	$_ = $_->{filename};
 	s/.*\.//;
 	return $_;
 }
@@ -38,6 +50,7 @@ is_deeply(
 
 my $max = max $svtp->bitrates;
 is(scalar $svtp->bitrates, $max, '->bitrates() in scalar context');
-is($svtp->filename($max), $ref->{filename}->{$max}, '->filename()');
-is($svtp->format($max), fileext($ref->{filename}->{$max}), '->format()');
+is($svtp->filename($max), $ref->{streams}->{$max}->{filename}, '->filename()');
+is($svtp->format($max), fileext($ref->{streams}->{$max}), '->format()');
 is($svtp->duration, $ref->{duration}, '->duration()');
+is($svtp->stream($max), $ref->{streams}->{$max}->{uri}, "->stream($max)");
