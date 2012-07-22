@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use lib 't/lib';
 use List::Util qw/max/;
 
@@ -54,3 +54,15 @@ is($svtp->filename($max), $ref->{streams}->{$max}->{filename}, '->filename()');
 is($svtp->format($max), fileext($ref->{streams}->{$max}), '->format()');
 is($svtp->duration, $ref->{duration}, '->duration()');
 is($svtp->stream($max), $ref->{streams}->{$max}->{uri}, "->stream($max)");
+
+is_deeply(
+	{ $svtp->stream() },
+
+	# Transform internal ref format to look like
+	# the output of the module
+	{ map {
+		$_ => $ref->{streams}->{$_}->{uri}
+	} keys %{$ref->{streams}} },
+
+	'->stream() in list context'
+);

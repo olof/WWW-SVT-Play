@@ -89,7 +89,10 @@ sub url {
 
  $svtp->stream($bitrate)
 
-Returns the stream URL for a given bitrate.
+Returns the stream URLs. If given a bitrate, only return a single
+URL (for the specified bitrate). Returns undef if the bitrate
+doesn't exist. When not given a bitrate, the URLs are returned in
+as hash, keyed by the bitrate.
 
 =cut
 
@@ -97,7 +100,8 @@ sub stream {
 	my $self = shift;
 	my $bitrate = shift;
 
-	return $self->{streams}->{$bitrate};
+	return $self->{streams}->{$bitrate} if $bitrate;
+	return %{$self->{streams}};
 }
 
 =head2 title
