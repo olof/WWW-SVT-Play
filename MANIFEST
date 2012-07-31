@@ -7,5 +7,7 @@ MANIFEST			This list of files
 README
 t/01-distribution.t
 t/data/188402.html
+t/data/198930.html
+t/data/42.html
 t/lib/LWP/UserAgent.pm
 t/video.t
