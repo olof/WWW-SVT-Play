@@ -17,9 +17,6 @@ AVAILABILITY AND BUG REPORTING
     It's encouraged to report bugs on github.com, but I will also monitor
     the CPAN RT and (of course,) e-mail.
 
-    (Actually, this is not available through CPAN yet. working on some
-     lingering issues before releasing it. And I will also writes tests.)
-
 COPYRIGHT
     Copyright (c) 2012 - Olof Johansson <olof@cpan.org> All rights reserved.
 
