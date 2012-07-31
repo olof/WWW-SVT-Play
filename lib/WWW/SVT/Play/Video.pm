@@ -174,7 +174,7 @@ list context) or undef (in scalar context).
 sub subtitles {
 	my $self = shift;
 	my @subtitles;
-	push @subtitles, @{$self->{subtitles}} if $self->{subtitles};
+	push @subtitles, @{$self->{subtitles}};
 
 	return @subtitles if wantarray;
 	return $subtitles[0];
