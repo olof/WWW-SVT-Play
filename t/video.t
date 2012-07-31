@@ -15,7 +15,7 @@ my $ref = {
 	streams => {
 		320 => {
 			filename => '14-7-21-00.mp4',
-                        uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
+			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
 		},
 		850 => {
 			filename => '14-7-21-00.mp4',
