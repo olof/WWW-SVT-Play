@@ -53,11 +53,11 @@ if($bitrate) {
 	if($opts->{download}) {
 		download($svtp, $bitrate);
 	} else {
-		say $svtp->url($bitrate);
+		say $svtp->stream($bitrate);
 	}
 } else {
 	say "W: You have to do specify a bitrate" if $opts->{download};
-	say "$_: ", $svtp->url($_) for $svtp->bitrates;
+	say "$_: ", $svtp->stream($_) for $svtp->bitrates;
 }
 
 exit 0;
@@ -66,7 +66,7 @@ sub download {
 	my $svtp = shift;
 	my $bitrate = shift;
 
-	my $url = $svtp->url($bitrate);
+	my $url = $svtp->stream($bitrate);
 	my $filename = $svtp->filename($bitrate);
 	print "using filename $filename\n\n";
 	exec("rtmpdump -r $url -o $filename");
