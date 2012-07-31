@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 43;
+use Test::More tests => 45;
+use Test::Trap;
 use lib 't/lib';
 use List::Util qw/max/;
 
@@ -152,3 +153,18 @@ video_tests({
 	],
 });
 
+trap { WWW::SVT::Play::Video->new('http://www.tv4play.se/') };
+
+like(
+	$trap->die,
+	qr/^\QCould not find needed parameters from SVT Play at\E/,
+	'A random URL should cause the constructor to die'
+);
+
+trap { WWW::SVT::Play::Video->new('http://www.svtplay.se/video/1337/foo') };
+
+like(
+	$trap->die,
+	qr|^\QFailed to fetch http://www.svtplay.se/video/1337/foo?type=embed: 404\E|,
+	'A 404 svtplay url should cause the constructor to die'
+);

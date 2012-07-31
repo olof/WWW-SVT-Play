@@ -62,7 +62,10 @@ sub _gen_200 {
 sub _video_id {
 	my $uri = shift;
 	my ($id) = $uri =~ m;/video/([^/]+)/;;
-	return $id;
+
+	# defaulting to 42: if what you supplied wasn't an
+	# svtplay url you could get anything back...
+	return $id // 42;
 }
 
 sub _read_file {

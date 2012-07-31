@@ -16,6 +16,7 @@ WriteMakefile (
 		'JSON' => 0,
 		'HTML::Entities' => 0,
 		'HTML::TreeBuilder' => 0,
+		'Test::Trap' => 0,
 	},
 );
 
