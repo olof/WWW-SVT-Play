@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use lib 't/lib';
 use List::Util qw/max/;
 
@@ -54,6 +54,10 @@ is($svtp->filename($max), $ref->{streams}->{$max}->{filename}, '->filename()');
 is($svtp->format($max), fileext($ref->{streams}->{$max}), '->format()');
 is($svtp->duration, $ref->{duration}, '->duration()');
 is($svtp->stream($max), $ref->{streams}->{$max}->{uri}, "->stream($max)");
+
+# The trivial case where no subtitle is available
+is_deeply([$svtp->subtitles], [], '->subtitles() in list context (no subs)');
+is($svtp->subtitles, undef, '->subtitles() in scalar context (no subs)');
 
 is_deeply(
 	{ $svtp->stream() },
