@@ -17,7 +17,7 @@ sub video_tests {
 
 	is($svtp->url, "$ref->{url}?type=embed", '->url()');
 	is($svtp->title, $ref->{title}, '->title()');
-	is($svtp->duration, 5371, '->duration()');
+	is($svtp->duration, $ref->{duration}, '->duration()');
 
 	is_deeply(
 		[sort {$a <=> $b } $svtp->bitrates],
