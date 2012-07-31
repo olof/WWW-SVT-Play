@@ -12,12 +12,24 @@ $VERSION = '0.3';
 my $APP  = 'svtplay';
 
 use strict;
-use warnings;
+use warnings FATAL => 'all';
 use feature qw/say/;
 
 use WWW::SVT::Play::Video;
 use Getopt::Long qw/:config gnu_getopt/;
 use Pod::Usage qw/pod2usage/;
+use URI;
+
+my %protocol_handlers = (
+	rtmp => 'rtmpdump -o {OUTPUT} -r {URI}',
+	rtmpe => 'rtmpdump -o {OUTPUT} -r {URI}',
+	http => "curl -L -A svtplay/$VERSION {URI} -o {OUTPUT}",
+	mms => 'mplayer -dumpstream -dumpfile {OUTPUT} {URI}',
+
+	# XXX: rtsp is also known to be used by svtplay. curl
+	# supports rtsp, but I can't seem to get it working
+	# with svtplay. Fortunately, they are not too common.
+);
 
 sub usage {
 	pod2usage(
@@ -40,6 +52,7 @@ GetOptions($opts,
 	'download|d',
 	'output|o=s',
 	'help|h',
+	'debug|D',
 	'version|v',
 );
 
@@ -62,6 +75,29 @@ if($bitrate) {
 
 exit 0;
 
+sub gen_cmd {
+	my ($uri, $filename) = @_;
+
+	my $cmdf;
+	my $urio = URI->new($uri);
+	my $scheme = $urio->scheme;
+
+	$cmdf = $protocol_handlers{$scheme} if
+		exists $protocol_handlers{$scheme};
+
+	unless($cmdf) {
+		say "E: Could not find a suitable downloader for '$scheme'.";
+		say "E: Try another stream format.";
+		exit 1;
+	}
+
+	$cmdf =~ s/{URI}/'$uri'/g;
+	$cmdf =~ s/{OUTPUT}/'$filename'/g;
+
+	say $cmdf if $opts->{debug};
+	return $cmdf;
+}
+
 sub download {
 	my $svtp = shift;
 	my $bitrate = shift;
@@ -69,7 +105,7 @@ sub download {
 	my $url = $svtp->stream($bitrate);
 	my $filename = $svtp->filename($bitrate);
 	print "using filename $filename\n\n";
-	exec("rtmpdump -r $url -o $filename");
+	exec(gen_cmd($url, $filename));
 }
 
 __END__
@@ -78,7 +114,7 @@ __END__
 
 =head1 NAME
 
-svtplay - extract RTMP URLs from svtplay.se
+svtplay - extract URLs from svtplay.se
 
 =head1 DESCRIPTION
 
@@ -110,7 +146,7 @@ options to the script.
 
 =head1 COPYRIGHT
 
-Copyright 2011, Olof Johansson <olof@ethup.se>
+Copyright 2011 -- 2012, Olof Johansson <olof@ethup.se>
 (and contributors...)
 
 Copying and distribution of this file, with or without
