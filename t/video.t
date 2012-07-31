@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 27;
+use Test::More tests => 40;
 use lib 't/lib';
 use List::Util qw/max/;
 
@@ -9,13 +9,14 @@ BEGIN { use_ok('WWW::SVT::Play::Video') }
 
 my $URIBASE = 'rtmp://fl11.c91005.cdn.qbrick.com';
 
+# 13 tests are performed in this function
 sub video_tests {
 	my($ref) = @_;
 	note("Tests for $ref->{url}");
 
 	my $svtp = new_ok('WWW::SVT::Play::Video', [$ref->{url}]);
 
-	is($svtp->url, "$ref->{url}?type=embed", '->url()');
+	is($svtp->url, $ref->{ppurl}, '->url()');
 	is($svtp->title, $ref->{title}, '->title()');
 	is($svtp->duration, $ref->{duration}, '->duration()');
 
@@ -74,30 +75,40 @@ sub fileext {
 	return $_;
 }
 
-video_tests({
-	url => 'http://www.svtplay.se/video/188402/14-7-21-00',
-	title => '14/7 21:00',
-	bitrates => [qw/320 850 1400/],
-	duration => 5371,
-	streams => {
-		320 => {
-			filename => '14-7-21-00.mp4',
-			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
+{
+	my $ref = {
+		url => 'http://www.svtplay.se/video/188402/14-7-21-00',
+		ppurl => 'http://www.svtplay.se/video/188402/14-7-21-00?type=embed',
+		title => '14/7 21:00',
+		bitrates => [qw/320 850 1400/],
+		duration => 5371,
+		streams => {
+			320 => {
+				filename => '14-7-21-00.mp4',
+				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
+			},
+			850 => {
+				filename => '14-7-21-00.mp4',
+				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-c-v1-04b3eee6620d4385.mp4",
+			},
+			1400 => {
+				filename => '14-7-21-00.mp4',
+				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-d-v1-04b3eee6620d4385.mp4",
+			},
 		},
-		850 => {
-			filename => '14-7-21-00.mp4',
-			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-c-v1-04b3eee6620d4385.mp4",
-		},
-		1400 => {
-			filename => '14-7-21-00.mp4',
-			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-d-v1-04b3eee6620d4385.mp4",
-		},
-	},
-	subtitles => [],
-});
+		subtitles => [],
+	};
+
+	video_tests($ref);
+
+	$ref->{url} = 'http://www.svtplay.se/video/188402/14-7-21-00?lala=foo';
+	$ref->{ppurl} = 'http://www.svtplay.se/video/188402/14-7-21-00?lala=foo&type=embed';
+	video_tests($ref);
+}
 
 video_tests({
 	url => 'http://www.svtplay.se/video/198930/del-8-av-12-the-astonishing',
+	ppurl => 'http://www.svtplay.se/video/198930/del-8-av-12-the-astonishing?type=embed',
 	title => 'Del 8 av 12: The Astonishing',
 	bitrates => [qw/320 340 364 850 1400 2400/],
 	duration => 1705,
