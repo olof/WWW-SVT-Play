@@ -45,12 +45,12 @@ sub video_tests {
 	# The trivial case where no subtitle is available
 	is_deeply(
 		[$svtp->subtitles],
-		[],
+		$ref->{subtitles},
 		'->subtitles() in list context (no subs)'
 	);
 	is(
 		$svtp->subtitles,
-		undef,
+		$ref->{subtitles}->[0],
 		'->subtitles() in scalar context (no subs)'
 	);
 
@@ -93,5 +93,6 @@ video_tests({
 			uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-d-v1-04b3eee6620d4385.mp4",
 		},
 	},
+	subtitles => [],
 });
 
