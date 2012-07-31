@@ -60,7 +60,7 @@ sub new {
 	
 	my @subtitles = map {
 		$_->{url}
-	} @{$json->{video}->{subtitleReferences}};
+	} grep { $_->{url} } @{$json->{video}->{subtitleReferences}};
 
 	bless {
 		url => $uri,
@@ -175,6 +175,7 @@ sub subtitles {
 	my $self = shift;
 	my @subtitles;
 	push @subtitles, @{$self->{subtitles}} if $self->{subtitles};
+
 	return @subtitles if wantarray;
 	return $subtitles[0];
 }
