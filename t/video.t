@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 40;
+use Test::More tests => 43;
 use lib 't/lib';
 use List::Util qw/max/;
 
@@ -9,7 +9,7 @@ BEGIN { use_ok('WWW::SVT::Play::Video') }
 
 my $URIBASE = 'rtmp://fl11.c91005.cdn.qbrick.com';
 
-# 13 tests are performed in this function
+# 14 tests are performed in this function
 sub video_tests {
 	my($ref) = @_;
 	note("Tests for $ref->{url}");
@@ -29,10 +29,11 @@ sub video_tests {
 	my $max = max $svtp->bitrates;
 	is(scalar $svtp->bitrates, $max, '->bitrates() in scalar context');
 
+	is($svtp->filename, $ref->{filename}, '->filename (no format)');
 	is(
 		$svtp->filename($max),
 		"$ref->{filename}.$ref->{streams}->{$max}->{fileext}",
-		'->filename()'
+		'->filename() (with format)'
 	);
 
 	is(
