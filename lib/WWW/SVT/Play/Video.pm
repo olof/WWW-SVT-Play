@@ -213,16 +213,15 @@ sub _extract_json {
 	my $param = $tree->look_down(
 		_tag => 'param',
 		name => 'flashvars',
-	);
+	) or die "Could not find needed parameters from SVT Play";
 
-	if($param and my($json) = $param->attr('value') =~ /^json=(.*)/) {
-		# SVT claims it's utf-8, but it's not... not the json. at
-		# least in one case it was iso-8859-15.
-		my $jsonenc = encode('utf-8', decode('iso-8859-15', $json));
-		return decode_json($jsonenc);
-	}
+	my($json) = $param->attr('value') =~ /^json=(.*)/ or
+		die "Could not find needed JSON object";
 
-	die "Could not find needed parameters from SVT Play";
+	# SVT claims it's utf-8, but it's not... not the json. at
+	# least in one case it was iso-8859-15.
+	my $jsonenc = encode('utf-8', decode('iso-8859-15', $json));
+	return decode_json($jsonenc);
 }
 
 =head1 COPYRIGHT
