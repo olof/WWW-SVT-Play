@@ -10,6 +10,7 @@ WriteMakefile (
 	ABSTRACT_FROM => 'lib/WWW/SVT/Play.pod',
 	VERSION_FROM => 'lib/WWW/SVT/Play/Video.pm',
 	SIGN => 1,
+	EXE_FILES => ['bin/svtplay'],
 
 	PREREQ_PM => {
 		'LWP::UserAgent' => 0,

@@ -1,4 +1,4 @@
-bin/svtplay.pl
+bin/svtplay
 Changes
 lib/WWW/SVT/Play.pod
 lib/WWW/SVT/Play/Video.pm
