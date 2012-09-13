@@ -160,7 +160,7 @@ sub format {
 	my $self = shift;
 	my $bitrate = shift;
 
-	my ($ext) = $self->{streams}->{$bitrate} =~ m#\.([^/]+?)$#;
+	my ($ext) = $self->{streams}->{$bitrate} =~ m#\.(\w+)$#;
 	return $ext;
 }
 
