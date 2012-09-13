@@ -126,7 +126,9 @@ sub filename {
 	my $self = shift;
 	my $bitrate = shift;
 	return $self->{filename} unless $bitrate;
-	return $self->{filename} . '.' . $self->format($bitrate);
+	my $ext = $self->format($bitrate) or
+		return $self->{filename};
+	return "$self->{filename}.$ext";
 }
 
 =head2 $svtp->bitrates
