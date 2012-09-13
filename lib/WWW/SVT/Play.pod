@@ -19,6 +19,24 @@ The latest released version of this module is available through
 CPAN. It's encouraged to report bugs on github.com, but I will
 also monitor the CPAN RT and (of course,) e-mail.
 
+=head1 KNOWN BUGS AND LIMITATIONS
+
+SVT recently announced that they are moving to using HDS (HTTP
+Dynamic Streaming). I'm seeing a lot of content moving to this.
+The module is still useful, but there are extra steps required
+to view some content, not currently implemented by the module.
+The L</SEE ALSO> section contains a URL to the announcement.
+
+=head1 SEE ALSO
+
+=over
+
+=item * L<SVT Play|http://svtplay.se/>
+
+=item * L<SVT announces move to HDS|http://blogg.svt.se/testbild/2012/09/ny-streamingteknik-for-svt-play/> (Swedish)
+
+=back
+
 =head1 COPYRIGHT
 
 Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
