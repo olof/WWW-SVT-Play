@@ -1,3 +1,4 @@
+.gitignore
 bin/svtplay
 Changes
 lib/WWW/SVT/Play.pod
@@ -5,8 +6,6 @@ lib/WWW/SVT/Play/Video.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
-MYMETA.json
-MYMETA.yml
 README
 t/01-distribution.t
 t/data/188402.html
