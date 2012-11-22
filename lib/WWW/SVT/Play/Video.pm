@@ -100,7 +100,7 @@ sub stream {
 	my $self = shift;
 	my $bitrate = shift;
 
-	return $self->{streams}->{$bitrate} if $bitrate;
+	return $self->{streams}->{$bitrate} if defined $bitrate;
 	return %{$self->{streams}};
 }
 

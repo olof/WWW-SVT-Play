@@ -42,7 +42,6 @@ sub usage {
 usage() unless(@ARGV);
 
 my $opts = {
-	bitrate => 0,
 	help => \&usage,
 	version => sub { say("$APP v", __PACKAGE__->VERSION) && exit },
 };
@@ -62,14 +61,14 @@ my $svtp = WWW::SVT::Play::Video->new($url) or
 my $bitrate = $opts->{bitrate};
 $bitrate = $svtp->bitrates if $opts->{'max-bitrate'};
 
-if($bitrate) {
+if(defined $bitrate) {
 	if($opts->{download}) {
 		download($svtp, $bitrate);
 	} else {
 		say $svtp->stream($bitrate);
 	}
 } else {
-	say "W: You have to do specify a bitrate" if $opts->{download};
+	say "W: You have to specify bitrate" if $opts->{download};
 	say "$_: ", $svtp->stream($_) for $svtp->bitrates;
 }
 
