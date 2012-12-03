@@ -35,7 +35,7 @@ GetOptions(
 		version => sub {
 			say("$APP v", __PACKAGE__->VERSION) && exit
 		},
-		type => 'hls',
+		type => 'list',
 	}, qw(
 		type|T=s
 		bitrate|b:i
