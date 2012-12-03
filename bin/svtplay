@@ -18,18 +18,7 @@ use feature qw/say/;
 use WWW::SVT::Play::Video;
 use Getopt::Long qw/:config gnu_getopt/;
 use Pod::Usage qw/pod2usage/;
-use URI;
-
-my %protocol_handlers = (
-	rtmp => 'rtmpdump -o {OUTPUT} -r {URI}',
-	rtmpe => 'rtmpdump -o {OUTPUT} -r {URI}',
-	http => "curl -L -A svtplay/$VERSION {URI} -o {OUTPUT}",
-	mms => 'mplayer -dumpstream -dumpfile {OUTPUT} {URI}',
-
-	# XXX: rtsp is also known to be used by svtplay. curl
-	# supports rtsp, but I can't seem to get it working
-	# with svtplay. Fortunately, they are not too common.
-);
+use YAML;
 
 sub usage {
 	pod2usage(
@@ -39,73 +28,129 @@ sub usage {
 	);
 }
 
-usage() unless(@ARGV);
+GetOptions(
+	my $opts = {
+		help => \&usage,
+		version => sub {
+			say("$APP v", __PACKAGE__->VERSION) && exit
+		},
+		type => 'hls',
+	}, qw(
+		type|T=s
+		bitrate|b:i
+		max-bitrate|m
+		download|d
+		stream|s
+		output|o=s
+		help|h
+		debug|D
+		force|F
+		version|v
+	)
+) or exit 1;
 
-my $opts = {
-	help => \&usage,
-	version => sub { say("$APP v", __PACKAGE__->VERSION) && exit },
-};
-GetOptions($opts,
-	'bitrate|b:i',
-	'max-bitrate|m',
-	'download|d',
-	'output|o=s',
-	'help|h',
-	'debug|D',
-	'version|v',
-);
+sub run_rtmp {
+	my $svtp = shift;
+	die "No RMTP streams available!\n" unless $svtp->has_rtmp;
 
-my $url = shift;
-my $svtp = WWW::SVT::Play::Video->new($url) or
-	die "Failed?";
-my $bitrate = $opts->{bitrate};
-$bitrate = $svtp->bitrates if $opts->{'max-bitrate'};
+	my $filename = $opts->{filename};
+	$filename //= $svtp->filename('rtmp');
 
-if(defined $bitrate) {
-	if($opts->{download}) {
-		download($svtp, $bitrate);
-	} else {
-		say $svtp->stream($bitrate);
+	my $bitrate = $opts->{bitrate};
+	$bitrate = $svtp->bitrates if $opts->{'max-bitrate'};
+	$bitrate //= $svtp->bitrates;
+
+	my $stream = $svtp->stream(
+		protocol => 'rtmp',
+		bitrate => $bitrate
+	);
+
+	if ($opts->{download}) {
+		$stream->download(
+			output => $filename,
+			force => $opts->{force},
+		);
+	} elsif ($opts->{stream}) {
+		$stream->stream();
 	}
-} else {
-	say "W: You have to specify bitrate" if $opts->{download};
-	say "$_: ", $svtp->stream($_) for $svtp->bitrates;
 }
 
-exit 0;
+sub run_hls {
+	my $svtp = shift;
+	die "No HLS streams available!\n" unless $svtp->has_hls;
 
-sub gen_cmd {
-	my ($uri, $filename) = @_;
+	my $filename = $opts->{filename};
+	$filename //= $svtp->filename('hls');
 
-	my $cmdf;
-	my $urio = URI->new($uri);
-	my $scheme = $urio->scheme;
+	my $stream = $svtp->stream( protocol => 'hls' );
 
-	$cmdf = $protocol_handlers{$scheme} if
-		exists $protocol_handlers{$scheme};
+	do_stream($svtp, $stream, $filename);
+}
 
-	unless($cmdf) {
-		say "E: Could not find a suitable downloader for '$scheme'.";
-		say "E: Try another stream format.";
-		exit 1;
-	}
+sub run_list {
+	my $svtp = shift;
+	my %streams;
 
-	$cmdf =~ s/{URI}/'$uri'/g;
-	$cmdf =~ s/{OUTPUT}/'$filename'/g;
+	$streams{hls} = $svtp->stream(protocol => 'hls')->url if $svtp->has_hls;
+	$streams{hds} = $svtp->stream(protocol => 'hds')->url if $svtp->has_hds;
+	$streams{rtmp} = $svtp->stream(protocol => 'rtmp') if $svtp->has_rtmp;
 
-	say $cmdf if $opts->{debug};
-	return $cmdf;
+	$streams{rtmp} = map {
+		$_ => $streams{rtmp}->{$_}->url
+	} keys $streams{rtmp} if $svtp->has_rtmp;
+
+	print Dump \%streams;
+}
+
+sub get_action {
+	return 'download' if $opts->{download};
+	return 'stream'   if $opts->{stream};
+	return 'output';
+}
+
+sub do_stream {
+	my $svtp   = shift;
+	my $stream = shift;
+
+	my $action = get_action();
+
+	return download($svtp, $stream) if $action eq 'download';
+	return stream  ($stream)        if $action eq 'stream';
+
+	say $stream->url;
+}
+
+sub get_filename {
+	my $svtp   = shift;
+	my $stream = shift;
+
+	return $opts->{filename} if $opts->{filename};
+	return $svtp->filename($stream->type);
 }
 
 sub download {
-	my $svtp = shift;
-	my $bitrate = shift;
+	my $svtp   = shift;
+	my $stream = shift;
 
-	my $url = $svtp->stream($bitrate);
-	my $filename = $svtp->filename($bitrate);
-	print "using filename $filename\n\n";
-	exec(gen_cmd($url, $filename));
+	$stream->download(
+		output => get_filename($svtp, $stream),
+		force  => $opts->{force},
+	);
 }
+
+my $url = shift or usage();
+
+my $svtp = WWW::SVT::Play::Video->new($url) or
+	die "Failed?";
+
+my %dispatch_type = (
+	rtmp => \&run_rtmp,
+	hls  => \&run_hls,
+	list => \&run_list,
+);
+
+$dispatch_type{$opts->{type}}->($svtp)
+	if exists $dispatch_type{$opts->{type}};
 
 __END__
 

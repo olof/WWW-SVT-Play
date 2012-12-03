@@ -1,19 +1,45 @@
 #!/usr/bin/perl
 use warnings;
 use strict;
-use Test::More tests => 45;
+use Test::More;
 use Test::Trap;
-use lib 't/lib';
 use List::Util qw/max/;
+use File::Slurp;
+use JSON;
+use Encode;
+use lib 't/lib';
 
-BEGIN { use_ok('WWW::SVT::Play::Video') }
+my @REF_FILES;
+BEGIN { @REF_FILES = glob('t/data/ref/*.json') }
 
-my $URIBASE = 'rtmp://fl11.c91005.cdn.qbrick.com';
+BEGIN {
+	my $video_tests_n = 13; # n tests performed in video_tests() (recursive)
+	plan tests => (1 + (@REF_FILES * $video_tests_n));
+	use_ok('WWW::SVT::Play::Video')
+}
 
-# 14 tests are performed in this function
+sub get_number {
+	my $f = shift;
+	my ($n) = $f =~ m|([^/]+)\.json$|;
+	return $n;
+}
+
+sub load_testdata {
+	my %ref;
+	my $json = JSON->new->utf8;
+
+	for my $file (@REF_FILES) {
+		my $n = get_number($file);
+		my $data = read_file($file);
+		$ref{$n} = $json->decode(encode('utf8', $data));
+	}
+
+	return %ref;
+}
+
 sub video_tests {
-	my($ref) = @_;
-	note("Tests for $ref->{url}");
+	my($n, $ref) = @_;
+	note("Tests for $ref->{url} ($n)");
 
 	my $svtp = new_ok('WWW::SVT::Play::Video', [$ref->{url}]);
 
@@ -21,34 +47,27 @@ sub video_tests {
 	is($svtp->title, $ref->{title}, '->title()');
 	is($svtp->duration, $ref->{duration}, '->duration()');
 
-	is_deeply(
-		[sort {$a <=> $b } $svtp->bitrates],
-		$ref->{bitrates},
-		'->bitrates() in list context'
-	);
+	SKIP: {
+		skip 'Bitrate is only available when using RTMP', 2
+			unless $svtp->has_rtmp;
 
-	my $max = max $svtp->bitrates;
-	is(scalar $svtp->bitrates, $max, '->bitrates() in scalar context');
+		is_deeply(
+			[sort {$a <=> $b } $svtp->rtmp_bitrates],
+			[sort {$a <=> $b } keys %{$ref->{streams}->{rtmp}}],
+			'->bitrates() in list context'
+		);
 
-	is($svtp->filename, $ref->{filename}, '->filename (no format)');
-	is(
-		$svtp->filename($max),
-		"$ref->{filename}.$ref->{streams}->{$max}->{fileext}",
-		'->filename() (with format)'
-	);
+		my $max = max $svtp->rtmp_bitrates;
+		is(
+			scalar $svtp->rtmp_bitrates,
+			$max,
+			'->bitrates() in scalar context'
+		);
+	}
 
-	is(
-		$svtp->format($max),
-		$ref->{streams}->{$max}->{fileext},
-		'->format()'
-	);
+	test_filename($ref, $svtp);
 
 	is($svtp->duration, $ref->{duration}, '->duration()');
-	is(
-		$svtp->stream($max),
-		$ref->{streams}->{$max}->{uri},
-		"->stream($max)"
-	);
 
 	# The trivial case where no subtitle is available
 	is_deeply(
@@ -61,110 +80,35 @@ sub video_tests {
 		$ref->{subtitles}->[0],
 		'->subtitles() in scalar context (no subs)'
 	);
+}
 
-	is_deeply(
-		{ $svtp->stream() },
+sub test_filename {
+	my $ref = shift;
+	my $svtp = shift;
 
-		# Transform internal ref format to look like
-		# the output of the module
-		{ map {
-			$_ => $ref->{streams}->{$_}->{uri}
-		} keys %{$ref->{streams}} },
+	is($svtp->filename, $ref->{filename}, '->filename (no format)');
 
-		'->stream() in list context'
+	is(
+		$svtp->filename('rtmp'),
+		"$ref->{filename}.rtmp",
+		'filename method: called with type rtmp'
 	);
+
+	is(
+		$svtp->filename('hds'),
+		"$ref->{filename}.flv",
+		'filename method: called with type hds'
+	);
+
+	is(
+		$svtp->filename('hls'),
+		"$ref->{filename}.mp4",
+		'filename method: called with type hls'
+	);
+
 }
 
-sub fileext {
-	my $_ = shift;
-	$_ = $_->{filename};
-	s/.*\.//;
-	return $_;
+my %testcases = load_testdata();
+for my $case (keys %testcases) {
+	video_tests($case, $testcases{$case});
 }
-
-{
-	my $ref = {
-		url => 'http://www.svtplay.se/video/188402/14-7-21-00',
-		ppurl => 'http://www.svtplay.se/video/188402/14-7-21-00?type=embed',
-		title => '14/7 21:00',
-		filename => '14-7-21-00',
-		bitrates => [qw/320 850 1400/],
-		duration => 5371,
-		streams => {
-			320 => {
-				fileext => 'mp4',
-				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-b-v1-04b3eee6620d4385.mp4",
-			},
-			850 => {
-				fileext => 'mp4',
-				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-c-v1-04b3eee6620d4385.mp4",
-			},
-			1400 => {
-				fileext => 'mp4',
-				uri => "$URIBASE/91005/_definst_/wp3/1240377/GRATTIS_VICTORI-001A-mp4-d-v1-04b3eee6620d4385.mp4",
-			},
-		},
-		subtitles => [],
-	};
-
-	video_tests($ref);
-
-	$ref->{url} = 'http://www.svtplay.se/video/188402/14-7-21-00?lala=foo';
-	$ref->{ppurl} = 'http://www.svtplay.se/video/188402/14-7-21-00?lala=foo&type=embed';
-	video_tests($ref);
-}
-
-video_tests({
-	url => 'http://www.svtplay.se/video/198930/del-8-av-12-the-astonishing',
-	ppurl => 'http://www.svtplay.se/video/198930/del-8-av-12-the-astonishing?type=embed',
-	title => 'Del 8 av 12: The Astonishing',
-	filename => 'del-8-av-12-the-astonishing',
-	bitrates => [qw/320 340 364 850 1400 2400/],
-	duration => 1705,
-	streams => {
-		320 => {
-			fileext => 'mp4',
-			uri => 'rtmpe://fl11.c90909.cdn.qbrick.com/90909/_definst_/wp3/1170726/NURSE_JACKIE_3-008A-mp4-b-v1-9f4b2046d497059e.mp4',
-		},
-		340 => {
-			fileext => 'mp4',
-			uri => 'rtsp://rtsp0.91001-od0.dna.qbrick.com/91001-od0/mp4:_definst_/wp3/1170726/NURSE_JACKIE_3-008A-mp4-a-v1-9f4b2046d497059e.mp4',
-		},
-		364 => {
-			fileext => 'mp4',
-			uri => 'http://geoip.api.qbrick.com/services/rest/qticket/svtplay.aspx?vurl=mms://secure-wm.qbrick.com/91001/wp3/1170726/NURSE_JACKIE_3-008A-wmv-a-v1-9f4b2046d497059e.wmv',
-		},
-		850 => {
-			fileext => 'mp4',
-			uri => 'rtmpe://fl11.c90909.cdn.qbrick.com/90909/_definst_/wp3/1170726/NURSE_JACKIE_3-008A-mp4-c-v1-9f4b2046d497059e.mp4',
-		},
-		1400 => {
-			fileext => 'mp4',
-			uri => 'rtmpe://fl11.c90909.cdn.qbrick.com/90909/_definst_/wp3/1170726/NURSE_JACKIE_3-008A-mp4-d-v1-9f4b2046d497059e.mp4',
-		},
-		2400 => {
-			fileext => 'mp4',
-			uri => 'rtmpe://fl11.c90909.cdn.qbrick.com/90909/_definst_/wp3/1170726/NURSE_JACKIE_3-008A-mp4-e-v1-9f4b2046d497059e.mp4'
-		},
-	},
-
-	subtitles => [
-		'http://media.svt.se/download/mcc/wp3/undertexter-wsrt/1170726/EPISOD-1170726-008A-wsrt-9f4b2046d497059e.wsrt'
-	],
-});
-
-trap { WWW::SVT::Play::Video->new('http://www.tv4play.se/') };
-
-like(
-	$trap->die,
-	qr/^\QCould not find needed parameters from SVT Play at\E/,
-	'A random URL should cause the constructor to die'
-);
-
-trap { WWW::SVT::Play::Video->new('http://www.svtplay.se/video/1337/foo') };
-
-like(
-	$trap->die,
-	qr|^\QFailed to fetch http://www.svtplay.se/video/1337/foo?type=embed: 404\E|,
-	'A 404 svtplay url should cause the constructor to die'
-);

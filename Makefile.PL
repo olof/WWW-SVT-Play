@@ -18,6 +18,8 @@ WriteMakefile (
 		'HTML::Entities' => 0,
 		'HTML::TreeBuilder' => 0,
 		'Test::Trap' => 0,
+		'URI' => 0,
+		'URI::Escape' => 0,
 	},
 );
 

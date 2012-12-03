@@ -29,11 +29,21 @@ use warnings FATAL => 'all';
 use strict;
 
 our $VERSION = 0.1;
+use Carp;
+
+use WWW::SVT::Play::Video::Stream;
+use WWW::SVT::Play::Utils qw(playertype_map);
+
 use HTML::TreeBuilder;
 use LWP::UserAgent;
 use List::Util qw/max/;
 use Encode;
 use JSON;
+use URI;
+use URI::Escape;
+
+use Data::Dumper;
+$Data::Dumper::Indent = 1;
 
 =head1 CONSTRUCTOR
 
@@ -47,36 +57,52 @@ hashref of options is reserved for future use.
 
 sub new {
 	my $class = shift;
-	my $uri = shift;
+	my $url = shift;
+	my $self = bless {}, $class;
 
-	$uri .= '?type=embed' unless $uri =~ /\?/;
-	$uri .= '&type=embed' unless $uri =~ /[\&\?]type=/;
-	my $html = _get($uri);
-	my $json = _extract_json($html);
-	
-	my %bitrate = map {
-		$_->{bitrate} => $_->{url}
-	} @{$json->{video}->{videoReferences}};
-	
+	$url .= '?type=embed' unless $url =~ /\?/;
+	$url .= '&type=embed' unless $url =~ /[\&\?]type=/;
+	my $html = _get($url);
+	$self->{_json} = _extract_json($html);
+
+	my %streams;
+	my %has; # what kind of streams does this video have?
+
+	for my $stream (@{$self->{_json}->{video}->{videoReferences}}) {
+		my $obj = WWW::SVT::Play::Video::Stream->from_json($stream);
+		next unless defined $obj;
+
+		if ($obj->is_rtmp) {
+			$has{rtmp} = 1;
+			$streams{rtmp}->{$obj->bitrate} = $obj;
+		} else {
+			$has{$obj->type} = 1;
+			$streams{$obj->type} = $obj;
+		}
+	}
+
 	my @subtitles = map {
 		$_->{url}
-	} grep { $_->{url} } @{$json->{video}->{subtitleReferences}};
+	} grep { $_->{url} } @{$self->{_json}->{video}->{subtitleReferences}};
 
-	bless {
-		url => $uri,
-		streams => \%bitrate,
-		filename => $json->{statistics}->{title},
-		subtitles => \@subtitles,
-		duration => $json->{video}->{materialLength},
-		title => $json->{context}->{title},
-	}, $class;
+	$self->{url} = $url;
+	$self->{streams} = \%streams;
+	$self->{filename} = $self->_gen_filename;
+	$self->{subtitles} = \@subtitles;
+	$self->{duration} = $self->{_json}->{video}->{materialLength};
+	$self->{title} = $self->{_json}->{context}->{title};
+
+	$self->{has} = \%has;
+
+	return $self;
 }
 
 =head2 url
 
  $svtp->url
 
-Returns the URL after it has been postprocessed somewhat.
+Returns the URL to the video's web page after it has been,
+postprocessed somewhat.
 
 =cut
 
@@ -87,21 +113,42 @@ sub url {
 
 =head2 stream
 
- $svtp->stream($bitrate)
+ $svtp->stream( protocol => 'HLS' )
+ $svtp->stream( internal => 'ios' )
+ $svtp->stream( protocol => 'RTMP', bitrate => '1400')
 
-Returns the stream URLs. If given a bitrate, only return a single
-URL (for the specified bitrate). Returns undef if the bitrate
-doesn't exist. When not given a bitrate, the URLs are returned in
-as hash, keyed by the bitrate.
+ my $url = $svtp->stream( protocol => 'HLS' )->url
+     if $svtp->has_hls;
+
+Returns the stream object matching the given requirement (or
+undef if video does not have a matching stream). Takes either SVT
+Play internal playerType name (named parameter: internal), or the
+protocol name (named parameter: protocol).
+
+Currently supported protocols: HLS, HDS and RTMP. If extracting
+RTMP, an optional bitrate parameter can be supplied. If this
+isn't supplied, a hash of bitrate url pairs is returned.
+
+RTMP is deprecated and no longer in use by SVT Play. Support for
+this may be dropped in the future.
 
 =cut
 
 sub stream {
 	my $self = shift;
-	my $bitrate = shift;
+	my %args = @_;
 
-	return $self->{streams}->{$bitrate} if defined $bitrate;
-	return %{$self->{streams}};
+	my $type = lc $args{protocol};
+	$type  //= playertype_map($args{internal});
+
+	my $bitrate = $args{bitrate};
+
+	if ($bitrate and $type eq 'rtmp') {
+		return $self->{streams}->{rtmp}->{$bitrate};
+	}
+
+	return $self->{streams}->{$type} if
+		exists $args{protocol};
 }
 
 =head2 title
@@ -115,37 +162,40 @@ sub title {
 	return $self->{title};
 }
 
-=head2 $svtp->filename($bitrate)
+=head2 $svtp->filename($type)
 
 Returns a filename suggestion for the video. If you give the
-optional bitrate argument, you also get a file extension.
+optional type argument, you also get a file extension.
 
 =cut
 
 sub filename {
 	my $self = shift;
-	my $bitrate = shift;
-	return $self->{filename} unless $bitrate;
-	my $ext = $self->format($bitrate) or
-		return $self->{filename};
-	return "$self->{filename}.$ext";
+	my $type = shift;
+	my $filename = $self->{filename};
+	my $ext = $self->_ext_by_type($type) if $type;
+	return $self->{filename} unless $ext;
+	return sprintf "%s.%s", $filename, $ext;
 }
 
-=head2 $svtp->bitrates
+=head2 $svtp->rtmp_bitrates
 
-In list context, returns a list of available bitrates for the
-video. In scalar context, the highest available bitrate is
-returned. In either case, the returned values can be used as
-argument to the module whenever a bitrate is asked for.
+In list context, returns a list of available RTMP stream bitrates
+for the video. In scalar context, the highest available bitrate
+is returned.
+
+B<Note:> Currently, we only support listing bitrates for RTMP
+streams, since they are given to us directly in the JSON blob.
 
 =cut
 
-sub bitrates {
+sub rtmp_bitrates {
 	my $self = shift;
 	my @streams;
-	@streams = keys %{$self->{streams}} if $self->{streams};
-	return @streams if wantarray;
-	return max(@streams);
+
+	return unless $self->has_rtmp;
+	return max keys %{$self->{streams}->{rtmp}} if not wantarray;
+	return keys %{$self->{streams}->{rtmp}};
 }
 
 =head2 $svtp->format($bitrate)
@@ -193,6 +243,33 @@ sub duration {
 	return $self->{duration};
 }
 
+=head2 $svtp->has_hls
+
+=cut
+
+sub has_hls {
+	my $self = shift;
+	return $self->{has}->{hls};
+}
+
+=head2 $svtp->has_hds
+
+=cut
+
+sub has_hds {
+	my $self = shift;
+	return $self->{has}->{hds};
+}
+
+=head2 $svtp->has_rtmp
+
+=cut
+
+sub has_rtmp {
+	my $self = shift;
+	return $self->{has}->{rtmp};
+}
+
 ## INTERNAL SUBROUTINES
 ##  These are *not* easter eggs or something like that. Yes, I'm
 ##  looking at you, Woldrich!
@@ -217,13 +294,50 @@ sub _extract_json {
 		name => 'flashvars',
 	) or die "Could not find needed parameters from SVT Play";
 
-	my($json) = $param->attr('value') =~ /^json=(.*)/ or
+	my($json_blob) = $param->attr('value') =~ /^json=(.*)/ or
 		die "Could not find needed JSON object";
+
+	#my $json = JSON->new->utf8;
+	#return $json->decode($json_blob);
 
 	# SVT claims it's utf-8, but it's not... not the json. at
 	# least in one case it was iso-8859-15.
-	my $jsonenc = encode('utf-8', decode('iso-8859-15', $json));
+	my $jsonenc = encode('utf-8', decode('iso-8859-15', $json_blob));
 	return decode_json($jsonenc);
+}
+
+sub _get_stream_by_protocol {
+	my $self = shift;
+	my $proto = lc(shift);
+
+	my %type_map = (
+		hds => 'flash',
+		hls => 'ios',
+	);
+
+	my $internal = $type_map{$proto};
+	if (not defined $internal) {
+		carp "Unknown protocol $proto";
+		return;
+	}
+
+	return $self->{streams}->{$internal};
+}
+
+sub _gen_filename {
+	my $self = shift;
+
+	my $stats_url = URI->new($self->{_json}->{statistics}->{statisticsUrl});
+	return uri_unescape($stats_url->query);
+}
+
+sub _ext_by_type {
+	my $self = shift;
+	my $type = shift;
+
+	return 'mp4' if $type eq 'hls';
+	return 'flv' if $type eq 'hds';
+	return $type; # better than nothing, i guess...
 }
 
 =head1 COPYRIGHT
