@@ -37,7 +37,7 @@ GetOptions(
 		},
 		type => 'list',
 	}, qw(
-		type|T=s
+		type|t=s
 		bitrate|b:i
 		max-bitrate|m
 		download|d
