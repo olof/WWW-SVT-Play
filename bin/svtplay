@@ -19,6 +19,7 @@ use WWW::SVT::Play::Video;
 use Getopt::Long qw/:config gnu_getopt/;
 use Pod::Usage qw/pod2usage/;
 use YAML;
+use List::Util qw/max/;
 
 sub usage {
 	pod2usage(
@@ -91,15 +92,42 @@ sub run_list {
 	my $svtp = shift;
 	my %streams;
 
-	$streams{hls} = $svtp->stream(protocol => 'hls')->url if $svtp->has_hls;
-	$streams{hds} = $svtp->stream(protocol => 'hds')->url if $svtp->has_hds;
-	$streams{rtmp} = $svtp->stream(protocol => 'rtmp') if $svtp->has_rtmp;
+	$streams{HLS} = $svtp->stream(protocol => 'hls')->url if $svtp->has_hls;
+	$streams{HDS} = $svtp->stream(protocol => 'hds')->url if $svtp->has_hds;
+	$streams{RTMP} = $svtp->stream(protocol => 'rtmp') if $svtp->has_rtmp;
 
 	$streams{rtmp} = map {
 		$_ => $streams{rtmp}->{$_}->url
 	} keys $streams{rtmp} if $svtp->has_rtmp;
 
-	print Dump \%streams;
+	gen_table(
+		Title => $svtp->title,
+		Filename => $svtp->filename,
+		Duration => $svtp->duration,
+
+		Streams => \%streams,
+	);
+}
+
+sub gen_table {
+	my %args = @_;
+
+	# compute width of field names
+	my $w = (max map { length } keys %args)+1;
+
+	# ugly way to keep order of arguments, but works :(
+	while (my $key = shift) {
+		my $val = shift;
+
+		if (ref $val eq 'HASH') {
+			say "$key:";
+			for my $k (keys %$val) {
+				say ' 'x8, "$k: $val->{$k}";
+			}
+		} else {
+			printf "%-${w}s %s\n", "$key:", $val;
+		}
+	}
 }
 
 sub get_action {
