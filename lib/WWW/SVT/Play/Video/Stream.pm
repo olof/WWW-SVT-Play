@@ -88,12 +88,7 @@ sub from_json {
 	if (lc $uri->scheme eq 'rtmp') {
 		$type = 'rtmp' if lc $uri->scheme =~ /^rtmpe?$/;
 	} else {
-		$type = playertype_map($json->{playerType});
-	}
-
-	if (not defined $type) {
-		carp "Unknown protocol found for stream '$uri'";
-		return;
+		$type = playertype_map($json->{playerType}) // '';
 	}
 
 	if ($type eq 'rtmp') {
@@ -118,8 +113,10 @@ sub from_json {
 		);
 	}
 
-	carp "Unknown protocol found for stream '$uri'";
-	return;
+	return WWW::SVT::Play::Video::Stream->new(
+		type => $json->{playerType},
+		url => $json->{url},
+	);
 }
 
 =head1 METHODS
