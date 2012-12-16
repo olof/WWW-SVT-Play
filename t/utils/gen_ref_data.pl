@@ -50,7 +50,8 @@ sub dump_json {
 
 
 my $url = shift or die("Need url\n");
-my ($n) = $url =~ m|/video/([0-9]+)/[^/]+$| or die "URL does not match";
+my ($n) = $url =~ m#/(?:video|klipp)/([0-9]+)/[^/]+$#
+	or die "URL does not match";
 my $ppurl = process_url($url);
 my $file = "$n.html";
 download($ppurl, $file);
@@ -91,17 +92,28 @@ $output->{streams} = [map {
 	#say Dumper $_;
 	my $plt = $_->{playerType};
 	my $btr = $_->{bitrate};
-	my $url = $_->{url};
-	my $out;
+	my $url = URI->new($_->{url});
+	my $out = {};
+	my $type;
 
-	$out = $plt eq 'flash' && $btr == 0 ?
-		{ type => 'hds' } :
-	$plt eq 'flash' ? 
-		{ type => 'rtmp', bitrate => $btr } :
-	$plt eq 'ios' ?
-		{ type => 'hls' } :
-		{ type => $plt };
-	$out->{url} = $url;
+	if ($plt eq 'flash') {
+		if (lc $url->scheme eq 'http') {
+			if ($btr == 0) {
+				$type = 'hds'
+			} else {
+				$type = 'http'
+			}
+		} else {
+			$type = 'rtmp'; # XXX: A bit blunt...
+		}
+	} elsif ($plt eq 'ios') {
+		$type = 'hls'
+	} else {
+		$type = $plt
+	}
+
+	$out->{type} = $type;
+	$out->{url} = "$url";
 	$out;
 } @{$data->{video}->{videoReferences}}];
 

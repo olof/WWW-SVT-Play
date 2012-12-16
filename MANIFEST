@@ -2,14 +2,25 @@
 bin/svtplay
 Changes
 lib/WWW/SVT/Play.pod
+lib/WWW/SVT/Play/Utils.pm
 lib/WWW/SVT/Play/Video.pm
+lib/WWW/SVT/Play/Video/Stream.pm
+lib/WWW/SVT/Play/Video/Stream/HDS.pm
+lib/WWW/SVT/Play/Video/Stream/HLS.pm
+lib/WWW/SVT/Play/Video/Stream/HTTP.pm
+lib/WWW/SVT/Play/Video/Stream/RTMP.pm
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 README
 t/01-distribution.t
 t/data/188402.html
-t/data/198930.html
 t/data/42.html
+t/data/70053.html
+t/data/914110.html
+t/data/ref/188402.json
+t/data/ref/70053.json
+t/data/ref/914110.json
 t/lib/LWP/UserAgent.pm
+t/utils/gen_ref_data.pl
 t/video.t

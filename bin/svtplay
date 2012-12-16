@@ -92,9 +92,14 @@ sub run_list {
 	my $svtp = shift;
 	my %streams;
 
-	$streams{HLS} = $svtp->stream(protocol => 'hls')->url if $svtp->has_hls;
-	$streams{HDS} = $svtp->stream(protocol => 'hds')->url if $svtp->has_hds;
-	$streams{RTMP} = $svtp->stream(protocol => 'rtmp') if $svtp->has_rtmp;
+	$streams{HLS} = $svtp->stream(protocol => 'hls')->url
+		if $svtp->has_hls;
+	$streams{HDS} = $svtp->stream(protocol => 'hds')->url
+		if $svtp->has_hds;
+	$streams{HTTP} = $svtp->stream(protocol => 'http')->url
+		if $svtp->has_http;
+	$streams{RTMP} = $svtp->stream(protocol => 'rtmp')
+		if $svtp->has_rtmp;
 
 	$streams{rtmp} = map {
 		$_ => $streams{rtmp}->{$_}->url

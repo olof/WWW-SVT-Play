@@ -28,7 +28,7 @@ of the WWW::SVT::Play application.
 
 # The translation map for supported 
 my %playertype_map = (
-	'flash' => 'hds',
+	'flash' => 'http',
 	'ios'   => 'hls',
 );
 my %protocol_map = reverse %playertype_map;

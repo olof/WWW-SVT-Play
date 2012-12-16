@@ -42,6 +42,7 @@ use URI;
 use WWW::SVT::Play::Video::Stream::HLS;
 use WWW::SVT::Play::Video::Stream::HDS;
 use WWW::SVT::Play::Video::Stream::RTMP;
+use WWW::SVT::Play::Video::Stream::HTTP;
 
 use Data::Dumper;
 
@@ -106,11 +107,18 @@ sub from_json {
 		);
 	}
 	
-	if ($type eq 'hds') {
-		return WWW::SVT::Play::Video::Stream::HDS->new(
-			type => $type,
-			url => $json->{url},
-		);
+	if ($type eq 'http') {
+		if ($json->{url} =~ m#/manifest\.f4m$#) {
+			return WWW::SVT::Play::Video::Stream::HDS->new(
+				type => 'hds',
+				url => $json->{url},
+			);
+		} else {
+			return WWW::SVT::Play::Video::Stream::HTTP->new(
+				type => $type,
+				url => $json->{url},
+			);
+		}
 	}
 
 	return WWW::SVT::Play::Video::Stream->new(
@@ -166,6 +174,14 @@ Is stream using RTMP protocol? Should be overriden.
 =cut
 
 sub is_rtmp { 0 }
+
+=head2 is_http
+
+Is stream using HTTP protocol? Should be overriden.
+
+=cut
+
+sub is_http { 0 }
 
 =head2 stream
 

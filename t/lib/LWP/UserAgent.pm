@@ -61,7 +61,7 @@ sub _gen_200 {
 
 sub _video_id {
 	my $uri = shift;
-	my ($id) = $uri =~ m;/video/([^/]+)/;;
+	my ($id) = $uri =~ m;/(?:video|klipp)/([^/]+)/;;
 
 	# defaulting to 42: if what you supplied wasn't an
 	# svtplay url you could get anything back...

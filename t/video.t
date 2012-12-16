@@ -7,13 +7,16 @@ use List::Util qw/max/;
 use File::Slurp;
 use JSON;
 use Encode;
+use Data::Dumper;
 use lib 't/lib';
+
+$Data::Dumper::Indent = 1;
 
 my @REF_FILES;
 BEGIN { @REF_FILES = glob('t/data/ref/*.json') }
 
 BEGIN {
-	my $video_tests_n = 13; # n tests performed in video_tests() (recursive)
+	my $video_tests_n = 27; # n tests performed in video_tests() (recursive)
 	plan tests => (1 + (@REF_FILES * $video_tests_n));
 	use_ok('WWW::SVT::Play::Video')
 }
@@ -48,12 +51,18 @@ sub video_tests {
 	is($svtp->duration, $ref->{duration}, '->duration()');
 
 	SKIP: {
-		skip 'Bitrate is only available when using RTMP', 2
-			unless $svtp->has_rtmp;
+		skip 'RTMP specific tests', 10 unless $ref->{has}->{rtmp};
+		ok $svtp->has_rtmp, "has rtmp streams";
+
+		my %ref_streams = map {
+			$_->{bitrate} => $_->{url}
+		} grep {
+			$_->{type} eq 'rtmp'
+		} @{$ref->{streams}};
 
 		is_deeply(
 			[sort {$a <=> $b } $svtp->rtmp_bitrates],
-			[sort {$a <=> $b } keys %{$ref->{streams}->{rtmp}}],
+			[sort {$a <=> $b } keys %ref_streams],
 			'->bitrates() in list context'
 		);
 
@@ -63,6 +72,52 @@ sub video_tests {
 			$max,
 			'->bitrates() in scalar context'
 		);
+
+		is_deeply(
+			[ sort {$a <=> $b } keys $svtp->stream(
+				protocol => 'rtmp'
+			) ],
+			[sort {$a <=> $b } keys %ref_streams],
+			'expected rtmp stream bitrates'
+		);
+
+		# We got one RTMP test case, with 3 bitrates
+		for my $bitrate (keys $svtp->stream(protocol => 'rtmp')) {
+			ok exists $ref_streams{$bitrate}, "expected bitrate";
+			my $stream = $svtp->stream(
+				protocol => 'rtmp',
+				bitrate => $bitrate
+			);
+
+			is $stream->url, $ref_streams{$bitrate},
+				"expected url for rtmp bitrate $bitrate";
+		}
+	}
+
+	SKIP: {
+		skip 'HLS specific tests', 2 unless $ref->{has}->{hls};
+		ok $svtp->has_hls, "has hls streams";
+		my ($hls_ref) = grep { $_->{type} eq 'hls' } @{$ref->{streams}};
+		is $svtp->stream(protocol => 'hls')->url, $hls_ref->{url},
+			"expected HLS url";
+	}
+
+	SKIP: {
+		skip 'HDS specific tests', 2 unless $ref->{has}->{hds};
+		ok $svtp->has_hds, "has hds streams";
+		my ($hds_ref) = grep { $_->{type} eq 'hds' } @{$ref->{streams}};
+		is $svtp->stream(protocol => 'hds')->url, $hds_ref->{url},
+			"expected HDS url";
+	}
+
+	SKIP: {
+		skip 'HTTP specific tests', 2 unless $ref->{has}->{http};
+		ok $svtp->has_http, "has http streams";
+		my ($http_ref) = grep {
+			$_->{type} eq 'http'
+		} @{$ref->{streams}};
+		is $svtp->stream(protocol => 'http')->url, $http_ref->{url},
+			"expected HTTP url";
 	}
 
 	test_filename($ref, $svtp);

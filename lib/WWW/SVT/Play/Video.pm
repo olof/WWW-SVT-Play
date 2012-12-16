@@ -270,6 +270,15 @@ sub has_rtmp {
 	return $self->{has}->{rtmp};
 }
 
+=head2 $svtp->has_http
+
+=cut
+
+sub has_http {
+	my $self = shift;
+	return $self->{has}->{http};
+}
+
 ## INTERNAL SUBROUTINES
 ##  These are *not* easter eggs or something like that. Yes, I'm
 ##  looking at you, Woldrich!
