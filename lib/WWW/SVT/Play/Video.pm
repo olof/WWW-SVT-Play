@@ -290,14 +290,19 @@ sub _get {
 	);
 	$ua->env_proxy;
 	my $resp = $ua->get($uri);
-	
+
 	return $resp->decoded_content if $resp->is_success;
 	die "Failed to fetch $uri: ", $resp->status_line;
 }
 
 sub _extract_json {
 	my $html = shift;
-	my $tree = HTML::TreeBuilder->new_from_content($html);
+	my $tree = HTML::TreeBuilder->new();
+
+	# make sure &aring et al are decoded to utf-8
+	$tree->utf8_mode(1);
+	$tree->parse_content($html);
+
 	my $param = $tree->look_down(
 		_tag => 'param',
 		name => 'flashvars',
@@ -306,13 +311,11 @@ sub _extract_json {
 	my($json_blob) = $param->attr('value') =~ /^json=(.*)/ or
 		die "Could not find needed JSON object";
 
-	#my $json = JSON->new->utf8;
-	#return $json->decode($json_blob);
-
-	# SVT claims it's utf-8, but it's not... not the json. at
-	# least in one case it was iso-8859-15.
-	my $jsonenc = encode('utf-8', decode('iso-8859-15', $json_blob));
-	return decode_json($jsonenc);
+	# I have no idea what I'm doing and why I have to
+	# encode $json_blob as UTF-8... I should probably
+	# go read some perluniintro... :-(
+	$json_blob = encode('UTF-8', $json_blob);
+	return decode_json($json_blob);
 }
 
 sub _get_stream_by_protocol {
