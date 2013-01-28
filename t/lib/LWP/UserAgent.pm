@@ -4,6 +4,7 @@ package LWP::UserAgent;
 use warnings;
 use strict;
 use HTTP::Response;
+use Encode;
 
 # LWP interface
 
@@ -74,7 +75,7 @@ sub _read_file {
 		or die("Could not open test data file $fname: $!");
 	my $data = join '', <$fh>;
 	close $fh;
-	return $data;
+	return encode('UTF-8', $data);
 }
 
 sub _test_html_fname {
