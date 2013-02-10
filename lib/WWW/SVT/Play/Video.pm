@@ -1,6 +1,6 @@
 package WWW::SVT::Play::Video;
 
-# Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
+# Copyright (c) 2012, 2013 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
 #
 # This program is free software; you can redistribute it and/or
@@ -342,7 +342,8 @@ sub _ext_by_type {
 
 =head1 COPYRIGHT
 
-Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
+Copyright (c) 2012, 2013 - Olof Johansson <olof@cpan.org>
+
 All rights reserved.
 
 This program is free software; you can redistribute it and/or
