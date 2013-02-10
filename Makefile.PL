@@ -15,10 +15,9 @@ WriteMakefile (
 	PREREQ_PM => {
 		'LWP::UserAgent' => 0,
 		'JSON' => 0,
-		'HTML::Entities' => 0,
-		'HTML::TreeBuilder' => 0,
 		'Test::Trap' => 0,
 		'URI' => 0,
+		'URI::QueryParam' => 0,
 		'URI::Escape' => 0,
 	},
 );

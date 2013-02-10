@@ -15,9 +15,18 @@ $Data::Dumper::Indent = 1;
 my @REF_FILES;
 BEGIN { @REF_FILES = glob('t/data/ref/*.json') }
 
+my %ALIASES;
+BEGIN {
+	open my $fh, '<', 't/data/aliases.json' or
+		die "Could not open t/data/aliases.json: $!";
+	my $blob = do { local $/=''; <$fh> };
+	close $fh;
+	%ALIASES = %{decode_json($blob)};
+}
+
 BEGIN {
 	my $video_tests_n = 27; # n tests performed in video_tests() (recursive)
-	plan tests => (1 + (@REF_FILES * $video_tests_n));
+	plan tests => (1 + (@REF_FILES + keys %ALIASES) * $video_tests_n);
 	use_ok('WWW::SVT::Play::Video')
 }
 
@@ -41,12 +50,13 @@ sub load_testdata {
 }
 
 sub video_tests {
+	my $url = shift;
 	my($n, $ref) = @_;
-	note("Tests for $ref->{url} ($n)");
+	note("Tests for $url ($n)");
 
 	my $svtp = new_ok('WWW::SVT::Play::Video', [$ref->{url}]);
 
-	is($svtp->url, $ref->{ppurl}, '->url()');
+	is($svtp->url, $ref->{url}, '->url()');
 	is($svtp->title, $ref->{title}, '->title()');
 	is($svtp->duration, $ref->{duration}, '->duration()');
 
@@ -165,5 +175,9 @@ sub test_filename {
 
 my %testcases = load_testdata();
 for my $case (keys %testcases) {
-	video_tests($case, $testcases{$case});
+	video_tests($testcases{$case}->{url}, $case, $testcases{$case});
+}
+
+for my $alias (keys %ALIASES) {
+	video_tests($alias, $ALIASES{$alias}, $testcases{$ALIASES{$alias}});
 }

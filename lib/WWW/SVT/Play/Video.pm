@@ -34,12 +34,12 @@ use Carp;
 use WWW::SVT::Play::Video::Stream;
 use WWW::SVT::Play::Utils qw(playertype_map);
 
-use HTML::TreeBuilder;
 use LWP::UserAgent;
 use List::Util qw/max/;
 use Encode;
 use JSON;
 use URI;
+use URI::QueryParam;
 use URI::Escape;
 
 use Data::Dumper;
@@ -60,10 +60,11 @@ sub new {
 	my $url = shift;
 	my $self = bless {}, $class;
 
-	$url .= '?type=embed' unless $url =~ /\?/;
-	$url .= '&type=embed' unless $url =~ /[\&\?]type=/;
-	my $html = _get($url);
-	$self->{_json} = _extract_json($html);
+	my $uri = URI->new($url);
+	$uri->query_form('output', 'json');
+
+	my $json = _get("$uri");
+	$self->{_json} = _get_json($json);
 
 	my %streams;
 	my %has; # what kind of streams does this video have?
@@ -295,21 +296,8 @@ sub _get {
 	die "Failed to fetch $uri: ", $resp->status_line;
 }
 
-sub _extract_json {
-	my $html = shift;
-	my $tree = HTML::TreeBuilder->new();
-
-	# make sure &aring et al are decoded to utf-8
-	$tree->utf8_mode(1);
-	$tree->parse_content($html);
-
-	my $param = $tree->look_down(
-		_tag => 'param',
-		name => 'flashvars',
-	) or die "Could not find needed parameters from SVT Play";
-
-	my($json_blob) = $param->attr('value') =~ /^json=(.*)/ or
-		die "Could not find needed JSON object";
+sub _get_json {
+	my $json_blob = shift;
 
 	# I have no idea what I'm doing and why I have to
 	# encode $json_blob as UTF-8... I should probably

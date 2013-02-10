@@ -18,7 +18,8 @@ GetOptions(
 );
 
 sub load_aliases {
-	open my $fh, '<', 'aliases' or die("Could not open 'aliases': $!");
+	open my $fh, '<', 'aliases.json' or
+		die("Could not open 'aliases.json': $!");
 	my $blob = do { local $/=''; <$fh> };
 	close $fh;
 	return decode_json($blob);
@@ -26,7 +27,7 @@ sub load_aliases {
 
 sub dump_aliases {
 	my $aliases = shift;
-	dump_json("aliases", $aliases);
+	dump_json("aliases.json", $aliases);
 	say "Updated list of aliases";
 }
 

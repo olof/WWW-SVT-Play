@@ -5,6 +5,7 @@ use warnings;
 use strict;
 use HTTP::Response;
 use Encode;
+use JSON;
 
 # LWP interface
 
@@ -21,7 +22,12 @@ sub env_proxy {
 sub get {
 	my $self = shift;
 	my $url = shift;
-	return $self->_gen_resp($url);
+
+	if ($url =~ /[&?]output=json(?:&.*)?$/) {
+		return $self->_gen_resp($url, _test_fname($url, 'json'));
+	}
+
+	return;
 }
 
 sub is_success {
@@ -30,13 +36,21 @@ sub is_success {
 
 # Mock helpers
 
+sub _load_aliases {
+	open my $fh, '<', 't/data/aliases.json' or
+		die("Could not open alias file: $!");
+	my $blob = do { local $/=''; <$fh> };
+	close $fh;
+	return decode_json($blob);
+}
+
 sub _gen_resp {
 	my $self = shift;
 	my $url = shift;
-	my $fname = _test_html_fname($url);
+	my $fname = shift;
 
-	return _gen_404($url) unless -r $fname;
-	return _gen_200($url);
+	return _gen_404($url, $fname) unless -r $fname;
+	return _gen_200($url, $fname);
 }
 
 sub _gen_404 {
@@ -45,7 +59,8 @@ sub _gen_404 {
 
 sub _gen_200 {
 	my $url = shift;
-	my $data = _read_file(_test_html_fname($url));
+	my $fname = shift;
+	my $data = _read_file($fname);
 
 	return HTTP::Response->new(500, 'Internal server error')
 		unless $data;
@@ -78,9 +93,15 @@ sub _read_file {
 	return encode('UTF-8', $data);
 }
 
-sub _test_html_fname {
+sub _test_fname {
 	my $url = shift;
-	return sprintf 't/data/%s.html', _video_id($url);
+	my $ext = shift;
+	my $vid = _video_id($url);
+
+	my $aliases = _load_aliases();
+	my $path = URI->new($url)->path;
+	$vid = $aliases->{path} // _video_id($url);
+	return sprintf 't/data/%s.%s', $vid, $ext;
 }
 
 1;
