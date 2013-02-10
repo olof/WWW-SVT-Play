@@ -7,6 +7,7 @@ use JSON;
 use Data::Dumper;
 use Getopt::Long;
 use URI;
+use URI::QueryParam;
 use URI::Escape;
 use LWP::Simple;
 $Data::Dumper::Indent = 1;
@@ -16,57 +17,61 @@ GetOptions(
 	'dumper'   => \$dumper,
 );
 
-sub download {
-	my $url = shift;
-	my $dest = shift;
+sub load_aliases {
+	open my $fh, '<', 'aliases' or die("Could not open 'aliases': $!");
+	my $blob = do { local $/=''; <$fh> };
+	close $fh;
+	return decode_json($blob);
+}
 
-	my $data = get($url) or die("Could not download $url");
-
-	open my $fh, '>', $dest or die("Could not open $dest: $!");
-	print $fh $data;
-	say "Wrote HTML to $dest";
+sub dump_aliases {
+	my $aliases = shift;
+	dump_json("aliases", $aliases);
+	say "Updated list of aliases";
 }
 
 sub process_url {
-	my $url = shift;
-
-	$url =~ s/type=\K[^&]*/embed/;
-	$url .= '&type=embed' if     $url =~ /\?/;
-	$url .= '?type=embed' unless $url =~ /\?/;
-
-	return $url;
+	my $url = URI->new(shift);
+	$url->query_param('output', 'json');
+	return "$url";
 }
 
 sub dump_json {
-	my $n = shift;
+	my $fname = shift;
 	my $data = shift;
 
-	open my $fh, '>', "ref/$n.json" or die "Could not open ref/$n.json: $!";
+	open my $fh, '>', $fname or die "Could not open $fname: $!";
 	my $json = JSON->new->allow_nonref;
 	say $fh $json->pretty->encode($data);
 	close $fh;
-	say "Wrote JSON to ref/$n.json";
 }
 
+sub dump_ref_json {
+	my $n = shift;
+	my $data = shift;
+	dump_json("ref/$n.json", $data);
+	say "Wrote JSON with test reference data to ref/$n.json";
+}
+
+sub gen_url {
+	my $data = shift;
+	return sprintf "http://www.svtplay.se/video/%d/", $data->{videoId};
+}
+
+my $aliases = load_aliases();
 
 my $url = shift or die("Need url\n");
-my ($n) = $url =~ m#/(?:video|klipp)/([0-9]+)/[^/]+$#
-	or die "URL does not match";
 my $ppurl = process_url($url);
-my $file = "$n.html";
-download($ppurl, $file);
-my $tree = HTML::TreeBuilder->new_from_file($file);
-
-my $param = $tree->look_down(
-	_tag => 'param',
-	name => 'flashvars',
-) or die "Could not find needed parameters from SVT Play";
-
-my($jsonblob) = $param->attr('value') =~ /^json=(.*)/ or
-	die "Could not find needed JSON object";
-
-my $jsonenc = encode('utf-8', decode('iso-8859-15', $jsonblob));
+my $jsonblob = get($ppurl);
+my $jsonenc = encode('utf-8', $jsonblob);
 my $data = decode_json($jsonenc);
+my $n = $data->{videoId} // die "Could not extract videoId from json";
+
+my $file = "$n.json";
+say "Wrote raw JSON from SVT Play to $file";
+open my $fh, '>', $file or die("Could not open $file: $!");
+print $fh $jsonblob;
+close $fh;
 
 if ($dumper) {
 	say Dumper $data;
@@ -76,7 +81,15 @@ if ($dumper) {
 
 my $output;
 
-$output->{url} = $url;
+my $canon_url = gen_url($data);
+if ($url =~ /^\Q$canon_url\E/) {
+	$canon_url = $url;
+} else {
+	my ($alias) = URI->new($url)->path =~ m(/([^/]+)$);
+	$aliases->{$alias} = $data->{videoId};
+}
+
+$output->{url} = gen_url($data);
 $output->{ppurl} = $ppurl;
 
 $output->{duration} = $data->{video}->{materialLength};
@@ -117,4 +130,5 @@ $output->{streams} = [map {
 	$out;
 } @{$data->{video}->{videoReferences}}];
 
-dump_json($n, $output);
+dump_ref_json($n, $output);
+dump_aliases($aliases);
