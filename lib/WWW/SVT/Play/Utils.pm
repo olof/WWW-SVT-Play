@@ -2,8 +2,8 @@ package WWW::SVT::Play::Utils;
 
 # Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
-# 
-# This program is free software; you can redistribute it and/or 
+#
+# This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 use warnings FATAL => 'all';
@@ -26,7 +26,7 @@ of the WWW::SVT::Play application.
 
 =cut
 
-# The translation map for supported 
+# The translation map for supported
 my %playertype_map = (
 	'flash' => 'http',
 	'ios'   => 'hls',

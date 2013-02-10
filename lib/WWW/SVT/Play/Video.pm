@@ -2,8 +2,8 @@ package WWW::SVT::Play::Video;
 
 # Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
-# 
-# This program is free software; you can redistribute it and/or 
+#
+# This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 =head1 NAME
@@ -20,7 +20,7 @@ WWW::SVT::Play::Video, extract information about videos on SVT Play
  $max = $max < $_ ? $_ : $max for $svtp->bitrates;
  my $stream_uri = $svtp->uri($max);
  my $filename = $svtp->filename($max);
- 
+
 =head1 DESCRIPTION
 
 =cut
@@ -357,7 +357,7 @@ sub _ext_by_type {
 Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 All rights reserved.
 
-This program is free software; you can redistribute it and/or 
+This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut

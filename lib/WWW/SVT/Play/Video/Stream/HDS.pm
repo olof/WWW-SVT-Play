@@ -2,8 +2,8 @@ package WWW::SVT::Play::Video::Stream::HDS;
 
 # Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
-# 
-# This program is free software; you can redistribute it and/or 
+#
+# This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 =head1 NAME
@@ -41,7 +41,7 @@ sub is_hds { 1 }
 Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 All rights reserved.
 
-This program is free software; you can redistribute it and/or 
+This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut

@@ -2,8 +2,8 @@ package WWW::SVT::Play::Video::Stream;
 
 # Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 # All rights reserved.
-# 
-# This program is free software; you can redistribute it and/or 
+#
+# This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 
 =head1 NAME
@@ -99,14 +99,14 @@ sub from_json {
 			bitrate => $json->{bitrate},
 		);
 	}
-	
+
 	if ($type eq 'hls') {
 		return WWW::SVT::Play::Video::Stream::HLS->new(
 			type => $type,
 			url => $json->{url},
 		);
 	}
-	
+
 	if ($type eq 'http') {
 		if ($json->{url} =~ m#/manifest\.f4m$#) {
 			return WWW::SVT::Play::Video::Stream::HDS->new(
@@ -217,7 +217,7 @@ sub download {
 Copyright (c) 2012 - Olof Johansson <olof@cpan.org>
 All rights reserved.
 
-This program is free software; you can redistribute it and/or 
+This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
 =cut
