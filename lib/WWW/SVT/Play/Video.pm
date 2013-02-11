@@ -12,14 +12,15 @@ WWW::SVT::Play::Video, extract information about videos on SVT Play
 
 =head1 SYNOPSIS
 
- my $uri = 'http://www.svtplay.se/video/107889/malmopolisen-del-6';
+ use WWW::SVT::Play::Video;
+
+ my $uri = 'http://www.svtplay.se/video/1014238/del-8';
  my $svtp = WWW::SVT::Play::Video->new($uri);
  say $svtp->title;
 
- my $max = 0;
- $max = $max < $_ ? $_ : $max for $svtp->bitrates;
- my $stream_uri = $svtp->uri($max);
- my $filename = $svtp->filename($max);
+ if ($svtp->has_hls) {
+         say $svtp->stream(protocol => 'HLS')->url;
+ }
 
 =head1 DESCRIPTION
 
