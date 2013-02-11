@@ -29,7 +29,7 @@ WWW::SVT::Play::Video, extract information about videos on SVT Play
 use warnings FATAL => 'all';
 use strict;
 
-our $VERSION = 0.1;
+our $VERSION = 0.11;
 use Carp;
 
 use WWW::SVT::Play::Video::Stream;

@@ -33,7 +33,7 @@ object that should be created for each stream.
 use warnings FATAL => 'all';
 use strict;
 
-our $VERSION = 0.1;
+our $VERSION = 0.11;
 use Carp;
 
 use WWW::SVT::Play::Utils qw(playertype_map);

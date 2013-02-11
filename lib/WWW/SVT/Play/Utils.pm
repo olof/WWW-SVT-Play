@@ -11,7 +11,7 @@ use strict;
 require Exporter;
 our @ISA = 'Exporter';
 our @EXPORT_OK = qw(playertype_map protocol_map);
-our $VERSION = 0.1;
+our $VERSION = 0.11;
 
 =head1 NAME
 

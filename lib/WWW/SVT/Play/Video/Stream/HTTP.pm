@@ -25,7 +25,7 @@ use warnings FATAL => 'all';
 use strict;
 use parent 'WWW::SVT::Play::Video::Stream';
 
-our $VERSION = 0.1;
+our $VERSION = 0.11;
 use Carp;
 
 =head2 is_http

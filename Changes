@@ -1,3 +1,10 @@
+WWW::SVT::Play 0.11, 2013-02-11
+
+ * Changes to unit tests to support perl <5.14
+ * Update synopsis to fit reality
+
+-- Olof Johansson <olof@ethup.se>
+
 WWW::SVT::Play 0.1, 2013-02-10
 
  * Initial release
