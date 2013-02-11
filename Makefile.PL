@@ -17,10 +17,13 @@ WriteMakefile (
 	PREREQ_PM => {
 		'LWP::UserAgent' => 0,
 		'JSON' => 0,
-		'Test::Trap' => 0,
 		'URI' => 0,
 		'URI::QueryParam' => 0,
 		'URI::Escape' => 0,
+
+		# used in tests
+		'Test::Trap' => 0,
+		'File::Slurp' => 0,
 	},
 );
 
