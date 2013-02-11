@@ -83,16 +83,15 @@ sub video_tests {
 			'->bitrates() in scalar context'
 		);
 
+		my %rtmp_streams = $svtp->stream(protocol => 'rtmp');
 		is_deeply(
-			[ sort {$a <=> $b } keys $svtp->stream(
-				protocol => 'rtmp'
-			) ],
-			[sort {$a <=> $b } keys %ref_streams],
+			[ sort { $a <=> $b } keys %rtmp_streams ],
+			[ sort { $a <=> $b } keys %ref_streams ],
 			'expected rtmp stream bitrates'
 		);
 
 		# We got one RTMP test case, with 3 bitrates
-		for my $bitrate (keys $svtp->stream(protocol => 'rtmp')) {
+		for my $bitrate (keys %rtmp_streams) {
 			ok exists $ref_streams{$bitrate}, "expected bitrate";
 			my $stream = $svtp->stream(
 				protocol => 'rtmp',
