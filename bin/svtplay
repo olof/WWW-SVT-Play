@@ -7,9 +7,8 @@
 # provided the copyright notice are preserved. This file is
 # offered as-is, without any warranty.
 
-use vars qw($VERSION);
-$VERSION = '0.3';
-my $APP  = 'svtplay';
+our $VERSION = '0.3';
+our $APP  = 'svtplay';
 
 use strict;
 use warnings FATAL => 'all';
