@@ -12,7 +12,7 @@ WriteMakefile (
 	SIGN => 1,
 	EXE_FILES => ['bin/svtplay'],
 
-	MIN_PERL_VERSION => '5.10.0',
+	MIN_PERL_VERSION => '5.10.1',
 
 	PREREQ_PM => {
 		'LWP::UserAgent' => 0,
