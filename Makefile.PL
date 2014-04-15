@@ -20,8 +20,9 @@ WriteMakefile (
 		'URI' => 0,
 		'URI::QueryParam' => 0,
 		'URI::Escape' => 0,
+	},
 
-		# used in tests
+	TEST_REQUIRES => {
 		'Test::Trap' => 0,
 		'File::Slurp' => 0,
 	},
