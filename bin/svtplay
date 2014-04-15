@@ -194,9 +194,9 @@ svtplay - extract URLs from svtplay.se
 
 =head1 DESCRIPTION
 
-svtplay is a script that lets you extract RTMP URLs from SVT Play.
-You can feed this URL to e.g. rtmpdump and extract the video using
-options to the script.
+svtplay is a script that lets you extract video URLs from SVT Play.
+You can feed this URL to a tool (e.g. video player) capable of
+fetching HLS/HDS streams. mplayer has some HLS support.
 
 =head1 SYNOPSIS
 
