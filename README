@@ -1,3 +1,10 @@
+Unmaintained:
+
+  This module has long since been deprecated and unusable. For an
+  actively maintained tool to interact with SVTPlay (as well as other
+  services), please consider using the actively maintained svtplay-dl
+  instead <https://github.com/spaam/svtplay-dl>.
+
 WWW::SVT::Play
 ==============
 This module supports extraction of meta data from the URLs on SVT
