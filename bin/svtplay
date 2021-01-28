@@ -102,7 +102,7 @@ sub run_list {
 
 	$streams{rtmp} = map {
 		$_ => $streams{rtmp}->{$_}->url
-	} keys $streams{rtmp} if $svtp->has_rtmp;
+	} keys %{$streams{rtmp}} if $svtp->has_rtmp;
 
 	gen_table(
 		Title => $svtp->title,
